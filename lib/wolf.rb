@@ -13,13 +13,31 @@ module Wolf
 
   def build_query(args)
     cmd = args.shift
-    cmd = ALIASES[cmd]  || ALIASES[cmd.to_sym] || cmd
-    ([cmd] + args).join(' ')
+    cmd_alias = ALIASES[cmd]  || ALIASES[cmd.to_sym]
+    if cmd_alias.to_s.include?('%s')
+      cmd_alias % args
+    else
+      cmd = cmd_alias || cmd
+      ([cmd] + args).join(' ')
+    end
+  end
+
+  def browser_opens(uri)
+    system('open', uri)
   end
 
   def devour(argv=ARGV)
+    return puts('wolf [-o|--open] QUERY') if argv.empty?
     load_rc '~/.wolfrc'
+    open_option = argv.delete('-o') || argv.delete('--open')
     query = build_query(argv)
-    puts Wolfram.fetch(query).inspect
+    if open_option
+      browser_opens Wolfram.query(query,
+        :query_uri => "http://www.wolframalpha.com/input/").uri(:i => query)
+    else
+      puts Wolfram.fetch(query).inspect
+    end
+  rescue ArgumentError
+    warn "Wolf Error: Wrong number of arguments"
   end
 end
