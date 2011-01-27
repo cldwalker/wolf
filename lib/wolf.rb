@@ -1,4 +1,5 @@
 require 'wolfram'
+require 'hirb'
 
 module Wolf
   ALIASES = {}
@@ -35,9 +36,39 @@ module Wolf
       browser_opens Wolfram.query(query,
         :query_uri => "http://www.wolframalpha.com/input/").uri(:i => query)
     else
-      puts Wolfram.fetch(query).inspect
+      puts render(Wolfram.fetch(query))
     end
   rescue ArgumentError
     warn "Wolf Error: Wrong number of arguments"
+  end
+
+  def render(result)
+    # result.inspect
+    Hirb.enable
+    body = ''
+    pods = result.pods.reject {|e| e.title == 'Input interpretation' || e.plaintext == '' }
+    # multiple 1-row tables i.e. math results
+    if pods.all? {|e| !e.plaintext.include?('|') }
+      rows  = pods.map {|e| [e.title, e.plaintext] }
+      body << Hirb::Helpers::AutoTable.render(rows, :description => false, :headers => false) << "\n\n"
+    # one one-row table i.e. word results
+    elsif pods.size == 1 && pod_rows(pods[0]).size == 1
+      rows = pod_rows(pods[0])[0]
+      body << pods[0].title.capitalize << "\n"
+      body << Hirb::Helpers::AutoTable.render(rows, :description => false, :headers => false) << "\n\n"
+    else
+      pods.each do |pod|
+        body << pod.title.capitalize << "\n"
+        rows = pod_rows pod
+        rows.delete_if {|e| e.size == 1 } if rows.size > 1
+        headers = pod.plaintext[/^\s*\|/] ? rows.shift : false
+        body << Hirb::Helpers::AutoTable.render(rows, :description => false, :headers => headers) << "\n\n"
+      end
+    end
+    body
+  end
+
+  def pod_rows(pod)
+    pod.plaintext.split("\n").map {|e| e.split(/\s+\|\s+/) }.delete_if {|e| e.size == 0 }
   end
 end
