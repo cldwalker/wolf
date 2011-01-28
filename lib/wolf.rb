@@ -21,6 +21,8 @@ module Wolf
       cmd = cmd_alias || cmd
       ([cmd] + args).join(' ')
     end
+  rescue ArgumentError
+    abort "Wolf Error: Wrong number of arguments"
   end
 
   def browser_opens(uri)
@@ -28,22 +30,39 @@ module Wolf
   end
 
   def devour(argv=ARGV)
-    return puts('wolf [-o|--open] QUERY') if argv.empty?
+    return puts('wolf [-o|--open] [-m|--menu] QUERY') if argv.empty?
     load_rc '~/.wolfrc'
-    open_option = argv.delete('-o') || argv.delete('--open')
+    options = {}
+    options[:open] = argv.delete('-o') || argv.delete('--open')
+    options[:menu] = argv.delete('-m') || argv.delete('--menu')
     query = build_query(argv)
-    if open_option
+    _devour(query, options)
+  end
+
+  def _devour(query, options={})
+    if options[:open]
       browser_opens Wolfram.query(query,
         :query_uri => "http://www.wolframalpha.com/input/").uri(:i => query)
     else
-      puts render(Wolfram.fetch(query))
+      result = Wolfram.fetch(query)
+      puts render(result)
+
+      if options[:menu]
+        choices = []
+        result.pods.select {|e| e.states.size > 0 }.each {|e|
+          choices += e.states.map {|s| [e.title, s.name] } }
+        choice = Hirb::Menu.render(choices, :change_fields => ['Section', 'Choice'],
+          :prompt =>"Choose one link to requery: ")[0]
+        if choice && (pod = result[choice[0]]) && state = pod.states.find {|e| e.name == choice[1] }
+          puts render(state.refetch)
+        else
+          abort "Wolf Error: Unable to find this link to requery it"
+        end
+      end
     end
-  rescue ArgumentError
-    warn "Wolf Error: Wrong number of arguments"
   end
 
   def render(result)
-    # result.inspect
     Hirb.enable
     body = ''
     pods = result.pods.reject {|e| e.title == 'Input interpretation' || e.plaintext == '' }
