@@ -30,11 +30,12 @@ module Wolf
   end
 
   def devour(argv=ARGV)
-    return puts('wolf [-o|--open] [-m|--menu] QUERY') if argv.empty?
+    return puts('wolf [-o|--open] [-m|--menu] [-x|--xml] QUERY') if argv.empty?
     load_rc '~/.wolfrc'
     options = {}
     options[:open] = argv.delete('-o') || argv.delete('--open')
     options[:menu] = argv.delete('-m') || argv.delete('--menu')
+    options[:xml] = argv.delete('-x') || argv.delete('--xml')
     query = build_query(argv)
     _devour(query, options)
   end
@@ -43,6 +44,8 @@ module Wolf
     if options[:open]
       browser_opens Wolfram.query(query,
         :query_uri => "http://www.wolframalpha.com/input/").uri(:i => query)
+    elsif options[:xml]
+      puts Wolfram.fetch(query).xml
     else
       result = Wolfram.fetch(query)
       puts render(result)
