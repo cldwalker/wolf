@@ -30,12 +30,13 @@ module Wolf
   end
 
   def devour(argv=ARGV)
-    return puts('wolf [-o|--open] [-m|--menu] [-x|--xml] QUERY') if argv.empty?
+    return puts('wolf [-o|--open] [-m|--menu] [-x|--xml] [-v|--verbose] QUERY') if argv.empty?
     load_rc '~/.wolfrc'
     options = {}
     options[:open] = argv.delete('-o') || argv.delete('--open')
     options[:menu] = argv.delete('-m') || argv.delete('--menu')
     options[:xml] = argv.delete('-x') || argv.delete('--xml')
+    options[:verbose] = argv.delete('-v') || argv.delete('--verbose')
     query = build_query(argv)
     _devour(query, options)
   end
@@ -48,21 +49,28 @@ module Wolf
       puts Wolfram.fetch(query).xml
     else
       result = Wolfram.fetch(query)
-      puts render(result)
+      render_result result, options
 
       if options[:menu]
         choices = []
         result.pods.select {|e| e.states.size > 0 }.each {|e|
           choices += e.states.map {|s| [e.title, s.name] } }
+        puts "\n** LINKS **"
         choice = Hirb::Menu.render(choices, :change_fields => ['Section', 'Choice'],
-          :prompt =>"Choose one link to requery: ")[0]
+          :prompt =>"Choose one link to requery: ", :description => false,
+          :directions => false)[0]
         if choice && (pod = result[choice[0]]) && state = pod.states.find {|e| e.name == choice[1] }
-          puts render(state.refetch)
+          render_result(state.refetch, options)
         else
           abort "Wolf Error: Unable to find this link to requery it"
         end
       end
     end
+  end
+
+  def render_result(result, options)
+    puts render(result)
+    puts "\nURI requested: #{result.uri}\n" if options[:verbose]
   end
 
   def render(result)
