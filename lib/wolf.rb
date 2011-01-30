@@ -35,27 +35,34 @@ module Wolf
     options[:menu] = argv.delete('-m') || argv.delete('--menu')
     options[:xml] = argv.delete('-x') || argv.delete('--xml')
     options[:verbose] = argv.delete('-v') || argv.delete('--verbose')
-    options
+    fetch_options = argv.inject({}) {|hash,arg|
+      if match = arg.match(/^--(\w+)=(\S+)/)
+        argv.delete arg
+        hash[$1.to_sym] = $2
+      end
+      hash
+    }
+    [options, fetch_options]
   end
 
   def devour(argv=ARGV)
-    options = parse_options(argv)
+    options, fetch_options = parse_options(argv)
     if argv.empty? || argv.include?('-h') || argv.include?('--help')
       return puts('wolf [-o|--open] [-m|--menu] [-x|--xml] [-v|--verbose] [-h|--help] QUERY')
     end
     load_rc '~/.wolfrc'
     query = build_query(argv)
-    _devour(query, options)
+    _devour(query, options, fetch_options)
   end
 
-  def _devour(query, options={})
+  def _devour(query, options, fetch_options)
     if options[:open]
       browser_opens Wolfram.query(query,
         :query_uri => "http://www.wolframalpha.com/input/").uri(:i => query)
     elsif options[:xml]
-      puts Wolfram.fetch(query).xml
+      puts Wolfram.fetch(query, fetch_options).xml
     else
-      result = Wolfram.fetch(query)
+      result = Wolfram.fetch(query, fetch_options)
       render_result result, options
 
       if options[:menu]
@@ -78,6 +85,7 @@ module Wolf
   def render_result(result, options)
     puts render(result)
     puts "\nURI requested: #{result.uri}\n" if options[:verbose]
+    puts "Found #{result.pods.size} pods" if options[:verbose]
   end
 
   def render(result)
