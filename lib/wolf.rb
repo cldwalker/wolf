@@ -29,14 +29,21 @@ module Wolf
     system('open', uri)
   end
 
-  def devour(argv=ARGV)
-    return puts('wolf [-o|--open] [-m|--menu] [-x|--xml] [-v|--verbose] QUERY') if argv.empty?
-    load_rc '~/.wolfrc'
+  def parse_options(argv)
     options = {}
     options[:open] = argv.delete('-o') || argv.delete('--open')
     options[:menu] = argv.delete('-m') || argv.delete('--menu')
     options[:xml] = argv.delete('-x') || argv.delete('--xml')
     options[:verbose] = argv.delete('-v') || argv.delete('--verbose')
+    options
+  end
+
+  def devour(argv=ARGV)
+    options = parse_options(argv)
+    if argv.empty? || argv.include?('-h') || argv.include?('--help')
+      return puts('wolf [-o|--open] [-m|--menu] [-x|--xml] [-v|--verbose] [-h|--help] QUERY')
+    end
+    load_rc '~/.wolfrc'
     query = build_query(argv)
     _devour(query, options)
   end
