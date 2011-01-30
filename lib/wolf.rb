@@ -67,8 +67,13 @@ module Wolf
         :query_uri => "http://www.wolframalpha.com/input/").uri(:i => query)
     elsif options[:xml]
       puts Wolfram.fetch(query, fetch_options).xml
+    elsif options[:load]
+      query.split(/\s+/).each {|file|
+        result = load_result(file)
+        render_result result, options
+      }
     else
-      result = options[:load] ? load_result(query) : Wolfram.fetch(query, fetch_options)
+      result = Wolfram.fetch(query, fetch_options)
       render_result result, options
 
       if options[:menu]
@@ -112,11 +117,11 @@ module Wolf
 
         # Handle multiple tables divided by graphs i.e. when comparing stocks
         if pod.plaintext.include?("\n\n") && pod.states.empty?
-          pod.plaintext.split(/\n{2,}/).each {|text|
+          strip(pod.plaintext).split(/\n{2,}/).each {|text|
             body << render_pod_rows(text_rows(text), text, options)
           }
         else
-          body << render_pod_rows(pod_rows(pod), pod.plaintext, options)
+          body << render_pod_rows(pod_rows(pod), strip(pod.plaintext), options)
         end
       end
     end
@@ -135,10 +140,14 @@ module Wolf
   end
 
   def pod_rows(pod)
-    text_rows pod.plaintext
+    text_rows strip(pod.plaintext)
+  end
+
+  def strip(text)
+    text.sub(/\A(\s+\|){2,}/m, '').sub(/(\s+\|){2,}\s*\Z/, '').strip
   end
 
   def text_rows(text)
-    text.split(/\n+/).map {|e| e.split(/\s+\|\s+/) }.delete_if {|e| e.size == 0 }
+    text.split(/\n+/).map {|e| e.split(/\s*\|\s+/) }
   end
 end
