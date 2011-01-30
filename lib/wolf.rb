@@ -33,13 +33,16 @@ module Wolf
 
   def parse_options(argv)
     options, fetch_options = {}, {}
-    while argv[0] =~ /^-/
-      arg = argv.shift
+    arg = argv.find {|e| e[/^-/] }
+    index = argv.index(arg)
+    while arg =~ /^-/
       if (opt = arg[/^--?(\w+)/, 1]) && (OPTIONS.key?(opt.to_sym) || OPTIONS.value?(opt.to_sym))
         options[OPTIONS[opt.to_sym] || opt.to_sym] = true
       elsif arg[/^--(\w+)=(\S+)/]
         fetch_options[$1.to_sym] = $2
       end
+      argv.delete_at(index)
+      arg = argv[index]
     end
     [options, fetch_options]
   end
