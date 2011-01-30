@@ -3,7 +3,8 @@ require 'hirb'
 
 module Wolf
   ALIASES = {}
-  OPTIONS = {:o => :open, :m => :menu, :x => :xml, :v => :verbose, :h => :help, :a => :all}
+  OPTIONS = {:o => :open, :m => :menu, :x => :xml, :v => :verbose, :h => :help,
+    :a => :all, :l => :load}
   extend self
 
   def load_rc(file)
@@ -46,11 +47,18 @@ module Wolf
   def devour(argv=ARGV)
     options, fetch_options = parse_options(argv)
     if argv.empty? || options[:help]
-      return puts('wolf [-o|--open] [-m|--menu] [-x|--xml] [-v|--verbose] [-a|--all] [-h|--help] QUERY')
+      return puts('wolf [-o|--open] [-m|--menu] [-x|--xml] [-v|--verbose]' +
+        ' [-a|--all] [-l|--load] [-h|--help] ARGS')
     end
     load_rc '~/.wolfrc'
     query = build_query(argv)
     _devour(query, options, fetch_options)
+  end
+
+  def load_result(file)
+    Wolfram::Result.new(File.read(file))
+  rescue Errno::ENOENT
+    abort "Wolf Error: File '#{file}' does not exist"
   end
 
   def _devour(query, options, fetch_options)
@@ -60,7 +68,7 @@ module Wolf
     elsif options[:xml]
       puts Wolfram.fetch(query, fetch_options).xml
     else
-      result = Wolfram.fetch(query, fetch_options)
+      result = options[:load] ? load_result(query) : Wolfram.fetch(query, fetch_options)
       render_result result, options
 
       if options[:menu]
