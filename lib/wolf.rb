@@ -3,6 +3,7 @@ require 'hirb'
 
 module Wolf
   ALIASES = {}
+  OPTIONS = { :o => :open, :m => :menu, :x => :xml, :v => :verbose, :h => :help }
   extend self
 
   def load_rc(file)
@@ -30,24 +31,21 @@ module Wolf
   end
 
   def parse_options(argv)
-    options = {}
-    options[:open] = argv.delete('-o') || argv.delete('--open')
-    options[:menu] = argv.delete('-m') || argv.delete('--menu')
-    options[:xml] = argv.delete('-x') || argv.delete('--xml')
-    options[:verbose] = argv.delete('-v') || argv.delete('--verbose')
-    fetch_options = argv.inject({}) {|hash,arg|
-      if match = arg.match(/^--(\w+)=(\S+)/)
-        argv.delete arg
-        hash[$1.to_sym] = $2
+    options, fetch_options = {}, {}
+    while argv[0] =~ /^-/
+      arg = argv.shift
+      if (opt = arg[/^--?(\w+)/, 1]) && (OPTIONS.key?(opt.to_sym) || OPTIONS.value?(opt.to_sym))
+        options[OPTIONS[opt.to_sym] || opt.to_sym] = true
+      elsif arg[/^--(\w+)=(\S+)/]
+        fetch_options[$1.to_sym] = $2
       end
-      hash
-    }
+    end
     [options, fetch_options]
   end
 
   def devour(argv=ARGV)
     options, fetch_options = parse_options(argv)
-    if argv.empty? || argv.include?('-h') || argv.include?('--help')
+    if argv.empty? || options[:help]
       return puts('wolf [-o|--open] [-m|--menu] [-x|--xml] [-v|--verbose] [-h|--help] QUERY')
     end
     load_rc '~/.wolfrc'
