@@ -3,7 +3,7 @@ require 'hirb'
 
 module Wolf
   ALIASES = {}
-  OPTIONS = { :o => :open, :m => :menu, :x => :xml, :v => :verbose, :h => :help }
+  OPTIONS = {:o => :open, :m => :menu, :x => :xml, :v => :verbose, :h => :help, :a => :all}
   extend self
 
   def load_rc(file)
@@ -46,7 +46,7 @@ module Wolf
   def devour(argv=ARGV)
     options, fetch_options = parse_options(argv)
     if argv.empty? || options[:help]
-      return puts('wolf [-o|--open] [-m|--menu] [-x|--xml] [-v|--verbose] [-h|--help] QUERY')
+      return puts('wolf [-o|--open] [-m|--menu] [-x|--xml] [-v|--verbose] [-a|--all] [-h|--help] QUERY')
     end
     load_rc '~/.wolfrc'
     query = build_query(argv)
@@ -81,15 +81,16 @@ module Wolf
   end
 
   def render_result(result, options)
-    puts render(result)
+    puts render(result, options)
     puts "\nURI requested: #{result.uri}\n" if options[:verbose]
     puts "Found #{result.pods.size} pods" if options[:verbose]
   end
 
-  def render(result)
+  def render(result, options)
     Hirb.enable
     body = ''
-    pods = result.pods.reject {|e| e.title == 'Input interpretation' || e.plaintext == '' }
+    pods = options[:all] ? result.pods :
+      result.pods.reject {|e| e.title == 'Input interpretation' || e.plaintext == '' }
     # multiple 1-row tables i.e. math results
     if pods.all? {|e| !e.plaintext.include?('|') }
       body << render_table(pods.map {|e| [e.title, e.plaintext] })
@@ -104,19 +105,19 @@ module Wolf
         # Handle multiple tables divided by graphs i.e. when comparing stocks
         if pod.plaintext.include?("\n\n") && pod.states.empty?
           pod.plaintext.split(/\n{2,}/).each {|text|
-            body << render_pod_rows(text_rows(text), text)
+            body << render_pod_rows(text_rows(text), text, options)
           }
         else
-          body << render_pod_rows(pod_rows(pod), pod.plaintext)
+          body << render_pod_rows(pod_rows(pod), pod.plaintext, options)
         end
       end
     end
     body
   end
 
-  def render_pod_rows(rows, text)
+  def render_pod_rows(rows, text, options)
     # delete comments
-    rows.delete_if {|e| e.size == 1 } if rows.size > 1
+    rows.delete_if {|e| e.size == 1 } if rows.size > 1 && !options[:all]
     headers = text[/^\s*\|/] ? rows.shift : false
     render_table(rows, headers) << "\n\n"
   end
