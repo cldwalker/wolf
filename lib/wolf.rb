@@ -4,7 +4,7 @@ require 'hirb'
 module Wolf
   ALIASES = {}
   OPTIONS = {:o => :open, :m => :menu, :x => :xml, :v => :verbose, :h => :help,
-    :a => :all, :l => :load}
+    :a => :all, :l => :load, :t => :title }
   extend self
 
   def load_rc(file)
@@ -36,15 +36,21 @@ module Wolf
     arg = argv.find {|e| e[/^-/] }
     index = argv.index(arg)
     while arg =~ /^-/
-      if (opt = arg[/^--?(\w+)/, 1]) && (OPTIONS.key?(opt.to_sym) || OPTIONS.value?(opt.to_sym))
+      if arg[/^--?(\w+)=(\S+)/]
+        opt = $1.to_sym
+        option?(opt) ? options[OPTIONS[opt] || opt] = $2 :
+          fetch_options[$1.to_sym] = $2
+      elsif (opt = arg[/^--?(\w+)/, 1]) && option?(opt.to_sym)
         options[OPTIONS[opt.to_sym] || opt.to_sym] = true
-      elsif arg[/^--(\w+)=(\S+)/]
-        fetch_options[$1.to_sym] = $2
       end
       argv.delete_at(index)
       arg = argv[index]
     end
     [options, fetch_options]
+  end
+
+  def option?(opt)
+    OPTIONS.key?(opt) || OPTIONS.value?(opt)
   end
 
   def devour(argv=ARGV)
@@ -107,6 +113,7 @@ module Wolf
     body = ''
     pods = options[:all] ? result.pods :
       result.pods.reject {|e| e.title == 'Input interpretation' || e.plaintext == '' }
+    pods = pods.select {|e| e.title[/#{options[:title]}/i] } if options[:title]
     # multiple 1-row tables i.e. math results
     if pods.all? {|e| !e.plaintext.include?('|') }
       body << render_table(pods.map {|e| [e.title, e.plaintext] })
