@@ -2,6 +2,7 @@ require 'wolfram'
 require 'hirb'
 require 'wolf/stomach'
 require 'wolf/mouth'
+require 'wolf/version'
 
 module Wolf
   ALIASES = {}
