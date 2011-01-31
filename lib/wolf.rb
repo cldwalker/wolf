@@ -103,7 +103,11 @@ module Wolf
   end
 
   def render_result(result, options)
-    puts render(result, options)
+    if result.success
+      puts render(result, options)
+    else
+      warn "No results found"
+    end
     puts "\nURI requested: #{result.uri}\n" if options[:verbose]
     puts "Found #{result.pods.size} pods" if options[:verbose]
   end
