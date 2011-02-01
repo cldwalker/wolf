@@ -25,10 +25,7 @@ module Wolf
     options, fetch_options = parse_options(argv)
     return puts(VERSION) if options[:version]
     return puts(help) if argv.empty? || options[:help]
-    return eat_at_home(argv, options) if options[:load]
-    load_rc '~/.wolfrc'
-    query = build_query(argv)
-    Mouth.eat(query, options, fetch_options)
+    Mouth.eat(argv, options, fetch_options)
   end
 
   def help
@@ -60,34 +57,5 @@ module Wolf
 
   def option?(opt)
     OPTIONS.key?(opt) || OPTIONS.value?(opt)
-  end
-
-  def eat_at_home(files, options)
-    Hirb.enable
-    files.each {|file|
-      Mouth.swallow Wolfram::Result.new(File.read(@file = file)), options
-    }
-  rescue Errno::ENOENT
-    abort "Wolf Error: File '#{@file}' does not exist"
-  end
-
-  def load_rc(file)
-    load file if File.exists?(File.expand_path(file))
-  rescue StandardError, SyntaxError, LoadError => e
-    warn "Wolf Error while loading #{file}:\n"+
-      "#{e.class}: #{e.message}\n    #{e.backtrace.join("\n    ")}"
-  end
-
-  def build_query(args)
-    cmd = args.shift
-    cmd_alias = ALIASES[cmd]  || ALIASES[cmd.to_sym]
-    if cmd_alias.to_s.include?('%s')
-      cmd_alias % args
-    else
-      cmd = cmd_alias || cmd
-      ([cmd] + args).join(' ')
-    end
-  rescue ArgumentError
-    abort "Wolf Error: Wrong number of arguments"
   end
 end

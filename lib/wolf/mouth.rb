@@ -2,7 +2,42 @@ module Wolf
   module Mouth
     extend self
 
-    def eat(query, options, fetch_options)
+    def eat(argv, options, fetch_options)
+      load_rc '~/.wolfrc'
+      options[:load] ? eat_at_home(argv, options) :
+        eat_out(build_query(argv), options, fetch_options)
+    end
+
+    def eat_at_home(files, options)
+      Hirb.enable
+      files.each {|file|
+        Mouth.swallow Wolfram::Result.new(File.read(@file = file)), options
+      }
+    rescue Errno::ENOENT
+      abort "Wolf Error: File '#{@file}' does not exist"
+    end
+
+    def load_rc(file)
+      load file if File.exists?(File.expand_path(file))
+    rescue StandardError, SyntaxError, LoadError => e
+      warn "Wolf Error while loading #{file}:\n"+
+        "#{e.class}: #{e.message}\n    #{e.backtrace.join("\n    ")}"
+    end
+
+    def build_query(args)
+      cmd = args.shift
+      cmd_alias = ALIASES[cmd]  || ALIASES[cmd.to_sym]
+      if cmd_alias.to_s.include?('%s')
+        cmd_alias % args
+      else
+        cmd = cmd_alias || cmd
+        ([cmd] + args).join(' ')
+      end
+    rescue ArgumentError
+      abort "Wolf Error: Wrong number of arguments"
+    end
+
+    def eat_out(query, options, fetch_options)
       if options[:open]
         open Wolfram.query(query,
           :query_uri => "http://www.wolframalpha.com/input/").uri(:i => query)
