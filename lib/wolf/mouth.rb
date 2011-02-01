@@ -38,6 +38,8 @@ module Wolf
     end
 
     def eat_out(query, options, fetch_options)
+      # Can't display other formats except as raw xml
+      options[:xml] = true if fetch_options[:format] && !options.key?(:xml)
       if options[:open]
         open Wolfram.query(query,
           :query_uri => "http://www.wolframalpha.com/input/").uri(:i => query)
