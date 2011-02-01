@@ -5,20 +5,37 @@ require 'wolf/mouth'
 require 'wolf/version'
 
 module Wolf
+  extend self
+
   ALIASES = {}
   OPTIONS = {:o => :open, :m => :menu, :x => :xml, :v => :verbose, :h => :help,
     :a => :all, :l => :load, :t => :title }
-  extend self
+  HELP_OPTIONS = [
+    ['-m, --menu', 'Choose from links in a menu and requery with one'],
+    ['-o, --open', 'Open query in the browser (mac only)'],
+    ['-a, --all', 'Print all tables and rows (uninteresting ones are hidden by default)'],
+    ['-t, --title=TITLE', 'Only display tables whose title match TITLE'],
+    ['-x, --xml', 'Print raw xml response instead of printing tables'],
+    ['-l, --load', "Load one or more xml files to print"],
+    ['-v, --verbose', 'Print additional information'],
+    ['-h, --help', 'Print help']
+  ]
 
   def devour(argv=ARGV)
     options, fetch_options = parse_options(argv)
-    if argv.empty? || options[:help]
-      return puts('wolf [-o|--open] [-m|--menu] [-x|--xml] [-v|--verbose]' +
-        ' [-a|--all] [-l|--load] [-h|--help] ARGS')
-    end
+    return puts(help) if argv.empty? || options[:help]
     load_rc '~/.wolfrc'
     query = build_query(argv)
     Mouth.eat(query, options, fetch_options)
+  end
+
+  def help
+    name_max = HELP_OPTIONS.map {|e| e[0].length }.max
+    desc_max = HELP_OPTIONS.map {|e| e[1].length }.max
+    ["Usage: wolf [OPTIONS] [ARGS]", "\nOptions:",
+      HELP_OPTIONS.map {|k,v| "  %-*s  %-*s" % [name_max, k, desc_max, v] },
+      "", "Append parameters to a query with options in the format --PARAM=VALUE i.e.",
+    "    --reinterpret=true --format=html"]
   end
 
   def parse_options(argv)
