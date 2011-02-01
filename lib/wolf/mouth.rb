@@ -72,8 +72,8 @@ module Wolf
       else
         warn "No results found"
       end
-      puts "\nURI requested: #{result.uri}\n" if options[:verbose]
-      puts "Found #{result.pods.size} pods" if options[:verbose]
+      puts "\nURI: #{result.uri}", "Fetched in #{result.timing}s",
+        "Found #{result.pods.size} pods" if options[:verbose]
     end
 
     def open(uri)
