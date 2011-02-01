@@ -9,7 +9,7 @@ module Wolf
 
   ALIASES = {}
   OPTIONS = {:o => :open, :m => :menu, :x => :xml, :v => :verbose, :h => :help,
-    :a => :all, :l => :load, :t => :title }
+    :a => :all, :l => :load, :t => :title, :V => :version}
   HELP_OPTIONS = [
     ['-m, --menu', 'Choose from links in a menu and requery with one'],
     ['-o, --open', 'Open query in the browser (mac only)'],
@@ -23,7 +23,9 @@ module Wolf
 
   def devour(argv=ARGV)
     options, fetch_options = parse_options(argv)
+    return puts(VERSION) if options[:version]
     return puts(help) if argv.empty? || options[:help]
+    return eat_at_home(argv, options) if options[:load]
     load_rc '~/.wolfrc'
     query = build_query(argv)
     Mouth.eat(query, options, fetch_options)
@@ -58,6 +60,15 @@ module Wolf
 
   def option?(opt)
     OPTIONS.key?(opt) || OPTIONS.value?(opt)
+  end
+
+  def eat_at_home(files, options)
+    Hirb.enable
+    files.each {|file|
+      Mouth.swallow Wolfram::Result.new(File.read(@file = file)), options
+    }
+  rescue Errno::ENOENT
+    abort "Wolf Error: File '#{@file}' does not exist"
   end
 
   def load_rc(file)
