@@ -12,12 +12,13 @@ module Wolf
     :a => :all, :l => :load, :t => :title, :V => :version}
   HELP_OPTIONS = [
     ['-m, --menu', 'Choose from links in a menu and requery with one'],
-    ['-o, --open', 'Open query in the browser (mac only)'],
     ['-a, --all', 'Print all tables and rows (uninteresting ones are hidden by default)'],
     ['-t, --title=TITLE', 'Only display tables whose title match TITLE'],
     ['-x, --xml', 'Print raw xml response instead of printing tables'],
     ['-l, --load', "Load one or more xml files to print"],
+    ['-o, --open', 'Open query in the browser (mac only)'],
     ['-v, --verbose', 'Print additional information'],
+    ['-V, --version', 'Print version'],
     ['-h, --help', 'Print help']
   ]
 
