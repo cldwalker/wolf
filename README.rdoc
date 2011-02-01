@@ -1,0 +1,137 @@
+== Description
+Devour computational knowledge on the commandline with {wolframalpha}[http://wolframalpha.com].
+
+== Install
+
+To install this gem:
+
+    gem install wolf
+
+== Setup
+
+Get a free Wolfram Appid (api key) by {creating an account
+here}[http://developer.wolframalpha.com/portal/apisignup.html] and
+then clicking on the 'Get an APPID' button.
+
+Once you have your own appid, set it in your shell, preferably in your ~/.zshrc or ~/.bashrc:
+
+    export WOLFRAM_APPID='YOURKEY'
+
+Or you can set your appid in your ~/.wolfrc:
+  
+    Wolfram.appid = "YOURKEY"
+
+== Usage
+
+wolf displays results in tables, making it easy to view wolfram queries in the console:
+
+    # Calculate distance and travel time between places
+    $ wolf boston to new york
+    Distance
+    +-------------+
+    | 184.3 miles |
+    +-------------+
+
+    Direct travel times
+    +---------------------+-------------------------+
+    | aircraft  (550 mph) | 20 minutes              |
+    | sound               | 14 minutes  30 seconds  |
+    | light in fiber      | 1.39 ms  (milliseconds) |
+    | light in vacuum     | 0.99 ms  (milliseconds) |
+    +---------------------+-------------------------+
+    ...
+
+    # Compare stocks
+    Latest trades
+    +------+---------------+--------+----------------+--------------------+
+    | GOOG | $600.30 (GOOG | NASDAQ | 4:02:42 pm EST | 5 hrs 41 mins ago) |
+    | AAPL | $339.30 (AAPL | NASDAQ | 4:21:45 pm EST | 5 hrs 22 mins ago) |
+    | MSFT | $27.73 (MSFT  | NASDAQ | 4:00:00 pm EST | 5 hrs 43 mins ago) |
+    +------+---------------+--------+----------------+--------------------+
+
+    Fundamentals and financials
+    +--------------------------+----------------+----------------+----------------+
+    |                          | Google         | Apple          | Microsoft      |
+    +--------------------------+----------------+----------------+----------------+
+    | market cap               | $192 billion   | $312.6 billion | $233 billion   |
+    | revenue                  | $27.55 billion | $76.28 billion | $66.69 billion |
+    | employees                | 23331          | 49400          | 89000          |
+    ...
+
+    # Displays local weather info
+    $ wolf weather
+    Latest recorded weather for boston, massachusetts
+    +-------------------+----------------------------+
+    | temperature       | 34 °F  (wind chill: 25 °F) |
+    | conditions        | cloudy                     |
+    | relative humidity | 47%  (dew point: 16 °F)    |
+    | wind speed        | 12 mph                     |
+    +-------------------+----------------------------+
+    ...
+
+In some cases wolf displays information more concisely than the website itself. Compare {the
+website}[http://www.wolframalpha.com/input/?i=pi] to:
+ 
+    $ wolf pi
+    +-----------------------------+---------------------------------------------------------------------------------------+
+    | Input                       | pi                                                                                    |
+    | Decimal approximation       | 3.1415926535897932384626433832795028841971693993751058209749...                       |
+    | Property                    | pi is a transcendental number                                                         |
+    | Continued fraction          | [3; 7, 15, 1, 292, 1, 1, 1, 2, 1, 3, 1, 14, 2, 1, 1, 2, 2, 2, 2, 1, 84, 2, 1, 1, ...] |
+    | Alternative representations | pi = 180 °                                                                            |
+    | Series representations      | pi = 4 sum_(k=0)^infinity(-1)^k/(2 k+1)                                               |
+    | Integral representations    | pi = 2 integral_0^infinity1/(t^2+1) dt                                                |
+    +-----------------------------+---------------------------------------------------------------------------------------+
+
+If you clicked on the previous link, you'll notice links to more information about the current result.
+wolf makes this available via the menu option (-m):
+
+    $ wolf pi -m
+
+    +-----------------------------+---------------------------------------------------------------------------------------+
+    | Input                       | pi                                                                                    |
+    | Decimal approximation       | 3.1415926535897932384626433832795028841971693993751058209749...                       |
+    | Property                    | pi is a transcendental number                                                         |
+    | Continued fraction          | [3; 7, 15, 1, 292, 1, 1, 1, 2, 1, 3, 1, 14, 2, 1, 1, 2, 2, 2, 2, 1, 84, 2, 1, 1, ...] |
+    | Alternative representations | pi = 180 °                                                                            |
+    | Series representations      | pi = 4 sum_(k=0)^infinity(-1)^k/(2 k+1)                                               |
+    | Integral representations    | pi = 2 integral_0^infinity1/(t^2+1) dt                                                |
+    +-----------------------------+---------------------------------------------------------------------------------------+
+
+    ** LINKS **
+    +--------+-----------------------------+---------------+
+    | number | Section                     | Choice        |
+    +--------+-----------------------------+---------------+
+    | 1      | Decimal approximation       | More digits   |
+    | 2      | Continued fraction          | Fraction form |
+    | 3      | Continued fraction          | More terms    |
+    | 4      | Alternative representations | More          |
+    | 5      | Series representations      | More          |
+    | 6      | Integral representations    | More          |
+    +--------+-----------------------------+---------------+
+    Choose one link to requery: 
+
+    # User types '1'
+    Choose one link to requery: 1
+
+    # To get back
+    +-----------------------------+-------------------------------------------------------------------------------------------------------------------------+
+    | Input                       | pi                                                                                                                      |
+    | Decimal approximation       | 3.141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117067982148086513282... |
+    | Property                    | pi is a transcendental number                                                                                           |
+    | Continued fraction          | [3; 7, 15, 1, 292, 1, 1, 1, 2, 1, 3, 1, 14, 2, 1, 1, 2, 2, 2, 2, 1, 84, 2, 1, 1, ...]                                   |
+    | Alternative representations | pi = 180 °                                                                                                              |
+    | Series representations      | pi = 4 sum_(k=0)^infinity(-1)^k/(2 k+1)                                                                                 |
+    | Integral representations    | pi = 2 integral_0^infinity1/(t^2+1) dt                                                                                  |
+    +-----------------------------+-------------------------------------------------------------------------------------------------------------------------+
+
+wolf has more options you can explore with:
+
+    $ wolf -h
+
+For more ideas on what you can query, {see the examples}[http://www.wolframalpha.com/examples/].
+  
+== Todo
+* More tests!
+* Better aliasing of commands
+* More documentation
