@@ -23,7 +23,7 @@ Or you can set your appid in your ~/.wolfrc:
 
 == Usage
 
-wolf displays results in tables, making it easy to view wolfram queries in the console:
+wolf displays results to wolfram queries as tables:
 
     # Calculate distance and travel time between places
     $ wolf boston to new york
@@ -41,7 +41,15 @@ wolf displays results in tables, making it easy to view wolfram queries in the c
     +---------------------+-------------------------+
     ...
 
+    # Solve an equation
+    ru wolf 'x^3 - sinx = e^-x'
+    +--------------------+---------------------------+
+    | Input              | x^3-sin(x) = e^(-x)       |
+    | Numerical solution | x ~~ 1.068531813164789... |
+    +--------------------+---------------------------+
+
     # Compare stocks
+    $ wolf goog, apple, microsoft
     Latest trades
     +------+---------------+--------+----------------+--------------------+
     | GOOG | $600.30 (GOOG | NASDAQ | 4:02:42 pm EST | 5 hrs 41 mins ago) |
@@ -58,7 +66,7 @@ wolf displays results in tables, making it easy to view wolfram queries in the c
     | employees                | 23331          | 49400          | 89000          |
     ...
 
-    # Displays local weather info
+    # Display local weather info
     $ wolf weather
     Latest recorded weather for boston, massachusetts
     +-------------------+----------------------------+
@@ -129,9 +137,46 @@ wolf has more options you can explore with:
 
     $ wolf -h
 
-For more ideas on what you can query, {see the examples}[http://www.wolframalpha.com/examples/].
-  
+Some examples of options:
+
+    # Only display tables whose titles match the case insensitive regex
+    $ wolf .me -t=name
+    Name
+    +------------------+------------------------+
+    | full name        | Republic of Montenegro |
+    | full native name | Republika Crna Gora    |
+    | internet code    | .me                    |
+    +------------------+------------------------+
+
+    # Print a query's xml response
+    $ wolf -x 4th monday in march
+    <queryresult success="true" error="false" numpods="9" datatypes="CalendarEvent,City" timedout=""
+    timing="1.985" parsetiming="0.559" parsetimedout="false" recalculate="" version="2.0">
+    ...
+
+    # Load local xml file(s) to read in console
+    $ wolf -l fourth_monday.xml
+    Result
+    +------------------------+
+    | Monday, March 28, 2011 |
+    +------------------------+
+    ...
+
+    # Append additional params to a query with --PARAM=VALUE
+    # Read API docs for available query params
+    $ wolf --format=html 50 euros
+    <queryresult success="true" error="false" numpods="4" datatypes="Quantity" timedout=""
+    timing="2.566" parsetiming="0.115" parsetimedout="false" recalculate="" version="2.0">
+     <pod title="Input interpretation" scanner="Identity" id="Input" position="100" error="false"
+     numsubpods="0">
+       <markup>
+       ...
+
+== Links
+* {Many query examples}[http://www.wolframalpha.com/examples/]
+* {API docs (pdf)}[https://products.wolframalpha.com/docs/WolframAlpha-API-Reference.pdf]
+
 == Todo
-* More tests!
+* Tests!
 * Better aliasing of commands
-* More documentation
+* option to tab delimit results for easy nix slicing + dicing
